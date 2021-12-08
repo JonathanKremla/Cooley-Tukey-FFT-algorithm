@@ -1,19 +1,18 @@
 #include <stdio.h>
 #include "ffftHeader.h"
 
+
 static char *programName = "<unset>";
 
-static compNum add(compNum a, compNum b){
-    compNum res;
-    res.imaginary = a.imaginary + b.imaginary;
-    res.real = a.real + b.real;
-    return res;
+static void add(compNum *a, compNum *b, compNum *c){
+    c -> imaginary = a.imaginary + b.imaginary;
+    c -> real = a.real + b.real;
 }
 
-static compNum multiply (compNum a, compNum b){
+static void multiply (compNum *a, compNum *b, compNum *c){
     compNum res;
-    res.real = a.real * b.real - a.imaginary * b.imaginary;
-    res.imaginary = a.real * b.imaginary + a.imaginary * b.real;
+    c -> real = a.real * b.real - a.imaginary * b.imaginary;
+    c -> imaginary = a.real * b.imaginary + a.imaginary * b.real;
     return res;
 }
 
@@ -68,7 +67,26 @@ static void createChild(dependencies * dep){
     }
 }
 
-
+static void butterfly(char input[], int size){
+    compNum even;
+    compNum odd;
+    compNum res;
+    compNum result[size];
+    for(int i = 0; i < size/2; i += 2){
+        convert(even,input[i]) * convert(odd,input[i+1]); //TODO: finish up here 
+    }
+}
+//convert string to complex number.
+static void convert(compNum *c, char *input){ //todo untested maybe wrong 
+    char *tmp;
+    c->real = strtof(input, &tmp);
+    if(tmp == ' '){
+        c->imaginary = strtof(input,&tmp);
+    }
+    else{
+        c -> imaginary = 0;
+    }
+}
 
 int main(int argc, char *argv[])
 {
@@ -103,6 +121,7 @@ int main(int argc, char *argv[])
         exit(EXIT_SUCCESS);
     }
 
+
     dependencies e_dep,o_dep;
     createChild(&e_dep);
     createChild(&o_dep);
@@ -115,7 +134,7 @@ int main(int argc, char *argv[])
     fprintf(fEwr,"%s",line1);
     fprintf(fOwr,"%s",line2);
 
-    
+    int count = 2; // We want to know how many floats we are writing to our children.
     while(1){
         if((getline(&line1,&n1,stdin)) == EOF){
             break;
@@ -130,6 +149,7 @@ int main(int argc, char *argv[])
             usage(programName);
         }
         fprintf(fOwr,"%s",line2);
+        count += 2;
     }
 
     fflush(fEwr);
@@ -145,23 +165,17 @@ int main(int argc, char *argv[])
 
     FILE *fErd = fdopen(e_dep.read,"r");
     FILE *fOrd = fdopen(o_dep.read,"r");
-    while(1){
+    char readChars[count]; // we are reading the same number of chars we put into our children, therefore we can use count from before.
+    for(int i = 0; i < count; i++){ //todo untested maybe wrong
         if(getline(&line1, &n1, fErd) == EOF){
             break;
         }
         line1 = realloc(line1,strlen(line1) + 1);
         line1[strlen(line1) -1 ] = '\n';
-        fprintf(stdout, "%s",line1);
-
-        if(getline(&line2,&n2,fOrd) == EOF){
-            break;
-        }
-        line2 = realloc(line2,strlen(line2) + 1);
-        line2[strlen(line2) -1 ] = '\n';
-        fprintf(stdout, "%s", line2);
-
-
+        readChars[i] = *line1;
     }
+
+
 
     free(line1);
     free(line2);
