@@ -24,8 +24,8 @@ typedef struct Dependencies{
 } dependencies;
 
 typedef struct ComplexNumber{
-    double real;
-    double imaginary;
+    float real;
+    float imaginary;
 }compNum;
 
 void usage(char* msg);

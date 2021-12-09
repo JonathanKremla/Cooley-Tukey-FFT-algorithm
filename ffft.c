@@ -10,19 +10,18 @@ static void add(compNum *a, compNum *b, compNum *c){
 }
 
 static void multiply (compNum *a, compNum *b, compNum *c){
-    c -> real = a->real * b->real - a->imaginary * b->imaginary;
-    c -> imaginary = a->real * b->imaginary + a->imaginary * b->real;
+    c -> real = (a->real * b->real) - (a->imaginary * b->imaginary);
+    c -> imaginary = (a->real * b->imaginary) + (a->imaginary * b->real);
 }
 
 static void subtract (compNum *a, compNum *b, compNum *c){
-    c -> real = a->real - b->imaginary;
+    c -> real = a->real - b->real;
     c -> imaginary = a->imaginary - b->imaginary;
 }
 
 //convert string to complex number.
-static void convert(compNum *c, char *input){ //todo untested maybe wrong 
+static void convert(compNum *c, char *input){
     char *tmp;
-    //fprintf(stderr,"HERE%s",input);  
     c -> real = strtof(input, &tmp);
 
     if(*tmp == ' '){
@@ -31,7 +30,6 @@ static void convert(compNum *c, char *input){ //todo untested maybe wrong
     else{
         c -> imaginary = 0;
     }
-    //free(tmp);
 }
 
 
@@ -86,12 +84,12 @@ static void createChild(dependencies * dep){
 }
 
 static void butterfly(char **inputEven, char **inputOdd, int size){
-    compNum even,odd,res,temp,result[size * 2],holder;
+    compNum result[size * 2];
     
     for(int i = 0; i < size; i++){
-        
-        temp.real = cos(-2*PI/size * i);
-        temp.imaginary = sin(-2*PI/size * i);
+        compNum even,odd,res,temp,holder;
+        temp.real = cos(-2*PI/(size*2) * i);
+        temp.imaginary = sin(-2*PI/(size*2) * i);
         convert(&even,inputEven[i]);
         convert(&odd,inputOdd[i]);
         multiply(&temp,&odd,&holder);
@@ -135,7 +133,6 @@ int main(int argc, char *argv[])
     length2 = getline(&line2, &n2, stdin);
     if (length2 == -1) //only one line was read
     { 
-        //fprintf(stdout, "%f", strtof(line1, NULL));
         fprintf(stdout, "%s", line1);
         free(line1);
         free(line2);
@@ -188,14 +185,6 @@ int main(int argc, char *argv[])
     FILE *fOrd = fdopen(o_dep.read,"r");
 
 
-    /*for(int i = 0; i < count; i++){
-        getline(&line1,&n1,fErd);
-        fprintf(stdout,"%s",line1);
-        getline(&line2,&n2,fOrd);
-        fprintf(stdout,"%s",line2);
-    }*/
-
-
 
     char *readCharsEven[count]; // we are reading the same number of chars we put into our children, therefore we can use count from before.
     char *readCharsOdd[count];
@@ -204,7 +193,6 @@ int main(int argc, char *argv[])
     while(getline(&line1, &n1, fErd) != -1){
         readCharsEven[index] = malloc(strlen(line1));
         strncpy(readCharsEven[index], line1, strlen(line1));
-        //fprintf(stdout, "%s", line1);
         index++;
     }
     
@@ -212,17 +200,10 @@ int main(int argc, char *argv[])
     while(getline(&line2, &n2, fOrd) != -1){
         readCharsOdd[index] = malloc(strlen(line2));
         strncpy(readCharsOdd[index], line2, strlen(line2));
-        //fprintf(stdout, "%s", line2);
         index++;
     }
     
 
-    butterfly(readCharsEven,readCharsOdd,count);
-
-    for(int i = 0; i < count; i++){
-        free(readCharsEven[i]);
-        free(readCharsOdd[i]);
-    }
 
     free(line1);
     free(line2);
@@ -232,5 +213,13 @@ int main(int argc, char *argv[])
     fflush(stdout);
     fclose(fErd);
     fclose(fOrd);
+
+     butterfly(readCharsEven,readCharsOdd,count);
+
+
+    for(int i = 0; i < count; i++){
+        free(readCharsEven[i]);
+        free(readCharsOdd[i]);
+    }
 
 }
