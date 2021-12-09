@@ -1,4 +1,4 @@
-#include "ffftHeader.h"
+#include "forkFFT.h"
 
 
 void usage(char* msg){
