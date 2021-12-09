@@ -8,7 +8,7 @@ OBJ = ffft.o funcDef.o
 all: ffft
 
 ffft: $(OBJ)
-	$(CC) $(FLAGS) -o $@ $^
+	$(CC) $(FLAGS) -o $@ $^ -lm
 
 %.o: %.c
 	$(CC) $(FLAGS) -c -o $@ $<

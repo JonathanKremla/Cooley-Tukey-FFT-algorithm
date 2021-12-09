@@ -13,6 +13,7 @@
 #include <sys/wait.h>
 #include <assert.h>
 #include <math.h>
+#include <errno.h>
 
 #define PI 3.141592654
 
@@ -30,4 +31,5 @@ typedef struct ComplexNumber{
 void usage(char* msg);
 
 void argumentParsing(int argc, char *argv[argc]);
+
 
