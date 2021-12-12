@@ -14,4 +14,4 @@ forkFFT: $(OBJ)
 	$(CC) $(FLAGS) -c -o $@ $<
 
 clean:
-	rm -rf *.o ffft
+	rm -rf *.o forkFFT

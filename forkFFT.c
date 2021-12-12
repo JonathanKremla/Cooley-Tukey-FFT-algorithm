@@ -1,25 +1,66 @@
+/**
+*@file forkFFFT.C
+*@author Jonathan Kremla
+*@date last edit 11-12-2021
+*@brief Program to calculate Cool-Turkey fast fourier transform
+*@details This Program implents the Cool Turkey fast fourier Transform, taking an
+*input of size 2^n of Complex Double Values and returning the fourier Transform
+*of the given Signal. The Program forks itself twice in each recursion level and
+*splits the input into two even sized outputs given to each child, until we
+*eventually get an input of size 1, then on the return path of the recursion it
+*calculates the Fourier transform.
+**/
 #include <stdio.h>
 #include "forkFFT.h"
 
-
+//Program Name
 static char *programName = "<unset>";
 
+/**
+ * @brief implements addition for the Struct ComplexNumber representing
+ * Complex Numbers.
+ * @param a pointer to a ComplexNumber struct representing the first addant.
+ * @param b pointer to a ComplexNumber struct representing the second addant.
+ * @param c pointer to a ComplexNumber struct, in which the result of the sum 
+ * is saved.
+ */
 static void add(compNum *a, compNum *b, compNum *c){
     c -> imaginary = a->imaginary + b->imaginary;
     c -> real = a->real + b->real;
 }
 
+/**
+ * @brief implements multiplication for the Struct ComplexNumber representing
+ * Complex Numbers.
+ * @param a pointer to a ComplexNumber struct representing the first factor.
+ * @param b pointer to a ComplexNumber struct representing the second factor.
+ * @param c pointer to a ComplexNumber struct, in which the result of 
+ * the multiplication is saved.
+ */
 static void multiply (compNum *a, compNum *b, compNum *c){
     c -> real = (a->real * b->real) - (a->imaginary * b->imaginary);
     c -> imaginary = (a->real * b->imaginary) + (a->imaginary * b->real);
 }
 
+/**
+ * @brief implements subtraction for the Struct ComplexNumber representing
+ * Complex Numbers.
+ * @param a pointer to a ComplexNumber struct representing the minuend.
+ * @param b pointer to a ComplexNumber struct representing the subtrahend.
+ * @param c pointer to a ComplexNumber struct, in which the result of 
+ * the subtraction is saved.
+ */
 static void subtract (compNum *a, compNum *b, compNum *c){
     c -> real = a->real - b->real;
     c -> imaginary = a->imaginary - b->imaginary;
 }
 
-//convert string to complex number.
+/**
+ * @brief converting a String to a Complex Number (struct Complex Number)
+ * 
+ * @param c pointer to which the result of the conversion is saved in.
+ * @param input char array(string) to convert
+ */
 static void convert(compNum *c, char *input){
     char *tmp;
     c -> real = strtof(input, &tmp);
@@ -31,7 +72,13 @@ static void convert(compNum *c, char *input){
         c -> imaginary = 0;
     }
 }
-
+/**
+ * @brief forks the programm resulting in a child and a parent Process
+ * @details the function creates a chikd of forkFFT by calling fork() and exec(),
+ * opening pipes to the parent process and saving the pipe fd´s in a dependencies struct, 
+ * together with the childs pid.
+ * @param dep pointer to dependencies struct in which the pipe fd´s and the childs pid will be saved.
+ */
 
 static void createChild(dependencies * dep){
     //pipe 1 parent -> child
@@ -82,6 +129,14 @@ static void createChild(dependencies * dep){
 
     }
 }
+/**
+ * @brief calculates the Cool-Turkey FFT and writes it to stdout.
+ * @param inputEven array containing the output from the Child to which we wrote even
+ * indices.
+ * @param inputOdd array containing the output from the Child to which we wrote odd
+ * indices
+ * @param size int which describes the size of inputtOdd/inputEven (same size).
+ */
 
 static void butterfly(char **inputEven, char **inputOdd, int size){
     compNum result[size * 2];
@@ -105,7 +160,15 @@ static void butterfly(char **inputEven, char **inputOdd, int size){
     }
 }
 
-
+/**
+ * @brief reads lines from stdin, calculates the FFT and calls butterfly.
+ * @details The Program starts here, the main function provides the main functionality
+ * by calling createChild() and butterfly().
+ * @param argc argument count
+ * @param argv argument vector
+ * @return EXIT_SUCCES on succesful termination
+ *         EXIT_FAILURE on failed termination
+ **/
 int main(int argc, char *argv[])
 {
     argumentParsing(argc, argv);
@@ -123,7 +186,7 @@ int main(int argc, char *argv[])
     length1 = getline(&line1, &n1, stdin);
     if (length1 == -1) //No line was read, something went wrong in parent process.
     { 
-        fprintf(stderr, "Failure in %s",programName);
+        fprintf(stderr, "Too few lines in %s",programName);
         free(line1);
         free(line2);
         exit(EXIT_FAILURE);
